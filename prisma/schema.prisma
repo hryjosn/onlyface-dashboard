@@ -1,0 +1,256 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model activity {
+  id                                 String   @id(map: "PK_24625a1d6b1b089c8ae206fe467") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  content                            String   @db.VarChar(100)
+  route                              String   @db.VarChar(30)
+  param                              String   @db.VarChar(60)
+  subscriber_avatar                  String   @db.VarChar(200)
+  post_image                         String   @db.VarChar(200)
+  type                               String   @db.VarChar(20)
+  created_at                         DateTime @default(now()) @db.Timestamp(6)
+  guestId                            String?  @db.Uuid
+  subscriberId                       String?  @db.Uuid
+  guest_activity_subscriberIdToguest guest?   @relation("activity_subscriberIdToguest", fields: [subscriberId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_0c697a5b72a3ceef22ffb7a237a")
+  guest_activity_guestIdToguest      guest?   @relation("activity_guestIdToguest", fields: [guestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_b7da7dafc35ce7b1d031f341ebb")
+}
+
+model block_user {
+  id                              String   @id(map: "PK_97d1284f2631641ab49f5b3bdae") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at                      DateTime @default(now()) @db.Timestamp(6)
+  blockerId                       String?  @db.Uuid
+  blockedId                       String?  @db.Uuid
+  user_block_user_blockerIdTouser user?    @relation("block_user_blockerIdTouser", fields: [blockerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_088296a01eb2dcc84d0334d7c9b")
+  user_block_user_blockedIdTouser user?    @relation("block_user_blockedIdTouser", fields: [blockedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_4a7458d5bb54931a4f2a9194ca3")
+}
+
+model chatroom {
+  id              String            @id(map: "PK_1e5ce0a999152e29952194d01ff") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at      DateTime          @default(now()) @db.Timestamp(6)
+  updated_at      DateTime          @default(now()) @db.Timestamp(6)
+  chatroom_member chatroom_member[]
+  message         message[]
+}
+
+model chatroom_member {
+  chatroomId String   @db.Uuid
+  userId     String   @db.Uuid
+  chatroom   chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade, map: "FK_0f9729b5ef1c5a73af13be5940c")
+  user       user     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_fceb43f237119032117db34045f")
+
+  @@id([chatroomId, userId], map: "PK_6a4416d826ac1d1e93239980e57")
+  @@index([chatroomId], map: "IDX_0f9729b5ef1c5a73af13be5940")
+  @@index([userId], map: "IDX_fceb43f237119032117db34045")
+}
+
+model combo {
+  id         String   @id(map: "PK_combo_id") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  post_id    String   @db.Uuid
+  count      Int
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  post       post     @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_post")
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_user")
+}
+
+model comment {
+  id         String   @id(map: "PK_8bf68bc960f2b69e818bdb90dcb") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  comment    String   @db.VarChar(1000)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  post_id    String?  @db.Uuid
+  user_id    String?  @db.Uuid
+  post       post?    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_8aa21186314ce53c5b61a0e8c93")
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_bbfe153fa60aa06483ed35ff4a7")
+}
+
+model config {
+  id            String @id(map: "PK_d0ee79a681413d50b0a4f98cf7b") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  verify_amount Int
+}
+
+model email_otp {
+  id              String   @id(map: "PK_22497c8e99f18a4e668e54a3eec") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId          String   @db.VarChar(36)
+  otp             String   @db.VarChar(6)
+  expired_at      DateTime @db.Timestamp(6)
+  last_request_at DateTime @db.Timestamp(6)
+}
+
+model followship {
+  id                               String   @id(map: "PK_cf42ce541190f963751c05cf5dc") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at                       DateTime @default(now()) @db.Timestamp(6)
+  followedId                       String?  @db.Uuid
+  followerId                       String?  @db.Uuid
+  user_followship_followerIdTouser user?    @relation("followship_followerIdTouser", fields: [followerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0599446fdb5dde5e61b39581d90")
+  user_followship_followedIdTouser user?    @relation("followship_followedIdTouser", fields: [followedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_487ab263c40d118e3827f3960f2")
+}
+
+model guest {
+  id                                    String     @id(map: "PK_57689d19445de01737dbc458857") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  password                              String     @db.VarChar(100)
+  user_name                             String     @db.VarChar(30)
+  avatar                                String     @db.VarChar(150)
+  verify_photo                          String     @db.VarChar(150)
+  verify                                Boolean
+  created_at                            DateTime   @default(now()) @db.Timestamp(6)
+  updated_at                            DateTime   @default(now()) @db.Timestamp(6)
+  email                                 String     @default("") @db.VarChar(254)
+  emailOTP                              Boolean    @default(false)
+  activity_activity_subscriberIdToguest activity[] @relation("activity_subscriberIdToguest")
+  activity_activity_guestIdToguest      activity[] @relation("activity_guestIdToguest")
+  invite_invite_invitedIdToguest        invite?    @relation("invite_invitedIdToguest")
+  invite_invite_inviterIdToguest        invite[]   @relation("invite_inviterIdToguest")
+  praise                                praise[]
+  reward                                reward[]
+  user                                  user?
+  warning                               warning?
+}
+
+model image_message {
+  id         String   @id(map: "PK_0cfeaaf5568abd3ef58ffb4af34") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  image      String   @db.VarChar(150)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  message_id String?  @db.Uuid
+  message    message? @relation(fields: [message_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_2a0cacb0e34132038254d61a78e")
+}
+
+model invite {
+  id                            String   @id(map: "PK_fc9fa190e5a3c5d80604a4f63e1") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at                    DateTime @default(now()) @db.Timestamp(6)
+  inviterId                     String?  @db.Uuid
+  invitedId                     String?  @unique(map: "REL_0297f3dcdd3250c964d84858b2") @db.Uuid
+  guest_invite_invitedIdToguest guest?   @relation("invite_invitedIdToguest", fields: [invitedId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0297f3dcdd3250c964d84858b2b")
+  guest_invite_inviterIdToguest guest?   @relation("invite_inviterIdToguest", fields: [inviterId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1bfcd5d4cb51bf86c2e36f3da5e")
+}
+
+model message {
+  id            String          @id(map: "PK_ba01f0a3e0123651915008bc578") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  message       String          @default("") @db.VarChar(1000)
+  created_at    DateTime        @default(now()) @db.Timestamp(6)
+  updated_at    DateTime        @default(now()) @db.Timestamp(6)
+  sender_id     String?         @db.Uuid
+  chatroom_id   String?         @db.Uuid
+  is_read       Boolean         @default(false)
+  order         Int             @default(0)
+  image_message image_message[]
+  chatroom      chatroom?       @relation(fields: [chatroom_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_4e3ee1c01f5f2c20fdb6d6c3d0b")
+  user          user?           @relation(fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c0ab99d9dfc61172871277b52f6")
+}
+
+model migrations {
+  id        Int    @id(map: "PK_8c82d7f526340ab734260ea46be") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model post {
+  id          String        @id(map: "PK_2829ac61eff60fcec60d7274b9e") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  picture     String        @db.VarChar(200)
+  content     String        @db.VarChar(500)
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  updated_at  DateTime      @default(now()) @db.Timestamp(6)
+  user_id     String?       @db.Uuid
+  combo       combo[]
+  comment     comment[]
+  user        user?         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_52378a74ae3724bcab44036645b")
+  post_like   post_like[]
+  report_post report_post[]
+}
+
+model post_like {
+  id      String  @id(map: "PK_a9323de3f8bced7539a794b4a37") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  post_id String? @db.Uuid
+  user_id String? @db.Uuid
+  post    post?   @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_a7ec6ac3dc7a05a9648c418f1ad")
+  user    user?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c635b15915984c8cdb520a1fef3")
+}
+
+model praise {
+  id         String   @id(map: "PK_08a8995ee25630df8dd9ae452d0") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  is_like    Boolean
+  user_id    String?  @db.Uuid
+  guest_id   String?  @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  guest      guest?   @relation(fields: [guest_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_663ae298ad723964ae30e68e860")
+  user       user?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_a6f23f28abe8fa9eaff7776a69c")
+}
+
+model recycle_account {
+  id          String   @id(map: "PK_f142d94dec9bc57e0edc2ee9912") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  delete_time DateTime @db.Timestamp(6)
+  user_id     String?  @unique(map: "REL_b4bd8d3faf055cdea687bea937") @db.Uuid
+  user        user?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_b4bd8d3faf055cdea687bea9374")
+}
+
+model report_post {
+  id          String   @id(map: "PK_265b3dc7c7f692f016115d46a29") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  report_type String   @db.VarChar
+  content     String?  @db.VarChar
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  post_id     String?  @db.Uuid
+  user_id     String?  @db.Uuid
+  user        user?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_5dbab74d593971ceca91e7d213a")
+  post        post?    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_61658524997a3adde4339d5c5f5")
+}
+
+model reset_password {
+  id              String   @id(map: "PK_82bffbeb85c5b426956d004a8f5") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId          String   @db.VarChar(36)
+  otp             String   @db.VarChar(6)
+  expired_at      DateTime @db.Timestamp(6)
+  last_request_at DateTime @db.Timestamp(6)
+}
+
+model reward {
+  id         String   @id(map: "PK_a90ea606c229e380fb341838036") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  amount     Int
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  guest_id   String?  @db.Uuid
+  guest      guest?   @relation(fields: [guest_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_87e0b2ec0703dcacb8c3c582a5e")
+}
+
+model user {
+  id                                     String            @id(map: "PK_a3ffb1c0c8416b9fc6f907b7433") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  legal_name                             String            @db.VarChar(30)
+  phone_number                           String            @db.VarChar(20)
+  created_at                             DateTime          @default(now()) @db.Timestamp(6)
+  updated_at                             DateTime          @default(now()) @db.Timestamp(6)
+  user_name                              String?           @db.VarChar(30)
+  introduction                           String?           @db.VarChar(200)
+  guestId                                String?           @unique(map: "UQ_f2038f209714d21d5615fa7b5f5") @db.Uuid
+  block_user_block_user_blockerIdTouser  block_user[]      @relation("block_user_blockerIdTouser")
+  block_user_block_user_blockedIdTouser  block_user[]      @relation("block_user_blockedIdTouser")
+  chatroom_member                        chatroom_member[]
+  combo                                  combo[]
+  comment                                comment[]
+  followship_followship_followerIdTouser followship[]      @relation("followship_followerIdTouser")
+  followship_followship_followedIdTouser followship[]      @relation("followship_followedIdTouser")
+  message                                message[]
+  post                                   post[]
+  post_like                              post_like[]
+  praise                                 praise[]
+  recycle_account                        recycle_account?
+  report_post                            report_post[]
+  guest                                  guest?            @relation(fields: [guestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f2038f209714d21d5615fa7b5f5")
+}
+
+model warning {
+  id         String   @id(map: "PK_54ddc381cc95ffd6909e427b093") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status     String   @default("") @db.VarChar(15)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @db.Timestamp(6)
+  guestId    String?  @unique(map: "REL_6bf568fb991dc5bd3fe1bedc83") @db.Uuid
+  guest      guest?   @relation(fields: [guestId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_6bf568fb991dc5bd3fe1bedc832")
+}
