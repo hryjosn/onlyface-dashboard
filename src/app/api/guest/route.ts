@@ -7,15 +7,17 @@ export async function GET(req: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '15', 10);
   const skip = (page - 1) * pageSize;
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
+  const [guests, total] = await Promise.all([
+    prisma.guest.findMany({
+      where:{
+        verify:true
+      },
       orderBy: [{ created_at: 'desc' }],
       skip,
       take: pageSize,
-    
     }),
-    prisma.post.count(),
+    prisma.guest.count(),
   ]);
 
-  return NextResponse.json({ posts, total });
+  return NextResponse.json({ guests, total });
 }

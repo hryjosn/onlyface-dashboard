@@ -38,7 +38,7 @@ const PostCard = ({ post, onDelete }: { post: Post; onDelete: (id: string) => vo
 
 const POSTS_PER_PAGE = 15;
 
-export const Verify = () => {
+export const VerifyPost = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -46,7 +46,7 @@ export const Verify = () => {
   const [hasMore, setHasMore] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  console.log('posts>',posts)
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);
@@ -62,7 +62,7 @@ export const Verify = () => {
       setLoading(false);
     };
     fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [page]);
 
   const handleDelete = async (id: string) => {

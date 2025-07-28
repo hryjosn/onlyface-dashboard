@@ -1,0 +1,1 @@
+export { VerifyPost } from './VerifyPost';
