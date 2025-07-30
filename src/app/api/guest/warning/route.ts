@@ -4,6 +4,7 @@ import prisma from '~/lib/prisma';
 export async function PUT(req: NextRequest) {
   try {
     const { guestId } = await req.json();
+    console.log('guestId>',guestId)
     if (!guestId) {
       return NextResponse.json({ error: 'Missing guestId' }, { status: 400 });
     }

@@ -19,9 +19,9 @@ type User = {
 
 
 
-function UserCard({ user }: { user: User }) {
+function UserCard({ user, onVerify }: { user: User; onVerify: (id: string) => void }) {
   return (
-    <div className="flex flex-col bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200 transition-transform hover:scale-105 duration-200 h-[420px]">
+    <div className="flex flex-col bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200 transition-transform hover:scale-105 duration-200 h-[640px]">
       <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 border-b border-gray-100">
         <div className="relative w-32 h-32 overflow-hidden border border-gray-200 bg-white">
           <NextImage
@@ -33,8 +33,14 @@ function UserCard({ user }: { user: User }) {
           />
         </div>
         <span className="font-semibold text-gray-800 text-base mt-2">{user.user_name || 'Unknown'}</span>
+        <button
+          className="mt-3 px-4 py-1.5 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition-colors text-sm"
+          onClick={() => onVerify(user.id)}
+        >
+          驗證本人
+        </button>
       </div>
-      <div className="relative w-full h-48 bg-gray-100">
+      <div className="relative w-full flex-1 bg-gray-100">
         <NextImage
           src={user.verify_photo || '/placeholder.png'}
           alt="Verify Photo"
@@ -57,6 +63,7 @@ export function VerifyUser() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -64,10 +71,8 @@ export function VerifyUser() {
       setError(null);
       try {
         const res = await fetch(`/api/guest?page=${page}&pageSize=${USERS_PER_PAGE}`);
-        
         if (!res.ok) throw new Error('無法取得用戶資料');
         const data = await res.json();
-        console.log('data>', data);
         if (page === 1) {
           setUsers(data.guests || []);
         } else {
@@ -84,6 +89,26 @@ export function VerifyUser() {
     fetchUsers();
   }, [page]);
 
+  // 驗證本人 handler
+  const handleVerify = async (id: string) => {
+    setVerifying(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/guest/warning`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guestId: id }),
+      });
+      if (!res.ok) throw new Error('驗證失敗');
+      setUsers((prev) => prev.filter((p) => p.id !== id));
+
+    } catch (e) {
+      setError('驗證失敗，請稍後再試');
+    } finally {
+      setVerifying(null);
+    }
+  };
+
   // IntersectionObserver for infinite scroll
   const loaderRef = useInfiniteScroll(() => {
     if (!loading && hasMore) {
@@ -98,13 +123,14 @@ export function VerifyUser() {
           <div className="col-span-5 flex justify-center items-center h-[340px] text-gray-400 text-lg">No users found.</div>
         ) : (
           users.map((user) => (
-            <UserCard key={user.id} user={user} />
+            <UserCard key={user.id} user={user} onVerify={handleVerify} />
           ))
         )}
       </div>
       <div ref={loaderRef} className="flex flex-col items-center mt-10 min-h-[40px]">
         {error && <span className="text-red-500 text-sm mb-2">{error}</span>}
         {loading && <span className="text-gray-400 text-lg">Loading...</span>}
+        {verifying && <span className="text-green-500 text-sm">驗證中...</span>}
         {!hasMore && !loading && users.length > 0 && <span className="text-gray-400 text-sm">已載入全部</span>}
       </div>
     </div>

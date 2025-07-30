@@ -46,7 +46,7 @@ export const VerifyPost = () => {
   const [hasMore, setHasMore] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  console.log('posts>',posts)
+  
   useEffect(() => {
     const fetchPosts = async () => {
       setLoading(true);

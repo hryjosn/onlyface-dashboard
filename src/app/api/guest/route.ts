@@ -9,14 +9,28 @@ export async function GET(req: NextRequest) {
 
   const [guests, total] = await Promise.all([
     prisma.guest.findMany({
-      where:{
-        verify:true
+      where: {
+
+        warning: {
+          isNot: {
+            status: 'warning',
+          },
+        },
       },
-      orderBy: [{ created_at: 'desc' }],
+      orderBy: [{ updated_at: 'desc' }],
       skip,
       take: pageSize,
     }),
-    prisma.guest.count(),
+    prisma.guest.count({
+      where: {
+
+        warning: {
+          is: {
+            status: 'warning',
+          },
+        },
+      },
+    }),
   ]);
 
   return NextResponse.json({ guests, total });
