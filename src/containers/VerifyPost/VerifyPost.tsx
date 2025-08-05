@@ -18,23 +18,32 @@ const PostCard = ({
   post: Post;
   onDelete: (id: string) => void;
 }) => (
-  <div className="flex h-[340px] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg transition-transform duration-200 hover:scale-105">
-    <div className="relative h-full w-full bg-gray-100">
+  <div className="group flex h-[380px] flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl transition-transform duration-200 hover:scale-[1.03]">
+    <div className="relative h-2/3 min-h-[180px] w-full bg-gradient-to-br from-blue-100 to-indigo-100">
       <Image
         alt="Post Image"
-        className="object-cover object-center"
+        className="rounded-t-2xl object-cover object-center transition-all group-hover:brightness-95"
         fill
+        priority={false}
         sizes="(max-width: 768px) 100vw, 20vw"
         src={post.picture || '/placeholder.png'}
       />
     </div>
-    <button
-      className="m-3 mt-2 rounded-lg bg-red-500 px-3 py-1.5 text-sm text-white shadow transition-colors hover:bg-red-600"
-      onClick={() => onDelete(post.id)}
-      type="button"
-    >
-      刪除
-    </button>
+    <div className="flex flex-1 flex-col justify-between gap-2 p-4">
+      <div
+        className="truncate font-semibold text-base text-gray-800"
+        title={post.content}
+      >
+        {post.content || <span className="text-gray-400">（無內容）</span>}
+      </div>
+      <button
+        className="mt-2 rounded-lg bg-gradient-to-r from-red-500 to-pink-500 px-4 py-2 font-bold text-sm text-white shadow-lg transition-all hover:from-red-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+        onClick={() => onDelete(post.id)}
+        type="button"
+      >
+        刪除
+      </button>
+    </div>
   </div>
 );
 
@@ -81,7 +90,9 @@ export const VerifyPost = () => {
       setPosts((prev) => prev.filter((p) => p.id !== id));
       setTotal((prev) => prev - 1);
     } catch (e) {
-      setError('刪除失敗，請稍後再試');
+      setError(
+        `刪除失敗，請稍後再試${e instanceof Error ? `: ${e.message}` : ''}`
+      );
     } finally {
       setDeleting(null);
     }
@@ -97,11 +108,14 @@ export const VerifyPost = () => {
   // 無需 handleChange, pageCount
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 px-2 py-6 md:px-6 lg:px-12">
-      <div className="grid min-h-[400px] grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 px-2 py-8 md:px-8 lg:px-16">
+      <h1 className="mb-8 font-bold text-3xl text-gray-800 tracking-tight drop-shadow-sm">
+        貼文審核
+      </h1>
+      <div className="grid min-h-[400px] w-full max-w-screen-2xl grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {posts.length === 0 && !loading ? (
           <div className="col-span-5 flex h-[340px] items-center justify-center text-gray-400 text-lg">
-            No posts found.
+            目前沒有待審核的貼文
           </div>
         ) : (
           posts.map((post) => (
@@ -110,11 +124,11 @@ export const VerifyPost = () => {
         )}
       </div>
       <div
-        className="mt-10 flex min-h-[40px] flex-col items-center"
+        className="mt-10 flex min-h-[40px] w-full flex-col items-center"
         ref={loaderRef}
       >
         {error && <span className="mb-2 text-red-500 text-sm">{error}</span>}
-        {loading && <span className="text-gray-400 text-lg">Loading...</span>}
+        {loading && <SkeletonRow />}
         {deleting && <span className="text-gray-400 text-sm">刪除中...</span>}
         {!(hasMore || loading) && posts.length > 0 && (
           <span className="text-gray-400 text-sm">已載入全部</span>
@@ -123,6 +137,19 @@ export const VerifyPost = () => {
     </div>
   );
 };
+
+function SkeletonRow() {
+  return (
+    <div className="flex w-full justify-center gap-6">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          className="h-[380px] w-64 animate-pulse rounded-2xl bg-gray-200"
+          key={i}
+        />
+      ))}
+    </div>
+  );
+}
 
 // custom hook for infinite scroll
 function useInfiniteScroll(onLoadMore: () => void) {
